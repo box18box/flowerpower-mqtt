@@ -17,3 +17,4 @@ I did test with only one flower power device, but the script must work with any 
 TODO :
 - add a properties file for configuration
 - better documentation and tutorial to install it on a beaglebone/raspberry pi computer
+- add npm install with dependancies

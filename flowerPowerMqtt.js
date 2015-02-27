@@ -8,11 +8,11 @@
  * exemple for pidome (you must replace with the groupid you choose) : 
  * 			"/hooks/devices/%id%/groupid/%topic%"; 
  */
-var TOPIC = "/hooks/devices/%id%/flowerpower/%topic%";
+var TOPIC = "raw/devices/%id%/data/%topic%";
 /**
  * URL adresse of the MQTT server
  */
-var BROKER_URL = "mqtt://192.168.1.59";
+var BROKER_URL = "mqtt://127.0.0.1";
 
 var HashMap = require('hashmap');
 /**
@@ -24,7 +24,7 @@ var HashMap = require('hashmap');
  * it's also shown in the console if you run the script !
  */
 var idConvertion = new HashMap();
-idConvertion.set("a0143d0c980c", 18);
+idConvertion.set("a0143d0c980c", 17);
 
 /**
  * list of all dataName and their description
@@ -43,7 +43,7 @@ var SOIL_TEMP = "SOIL_TEMPERATURE";
 var AIR_TEMP = "AIR_TEMPERATURE";
 // Soil moisture (humidity) in %
 var SOIL_MOISTURE = "SOIL_MOISTURE";
-// same data but calibrated : I was not able to found information about this "calibrated" data vs raw data aboave.
+// same data but calibrated : I was not able to found information about this "calibrated" data vs raw data above.
 var CAL_SOI_MOISTURE = "CALIBRATED_SOIL_MOISTURE";
 var CAL_AIR_TEMP = "CALIBRATED_AIR_TEMPERATURE";
 var CAL_SUNLIGHT = "CALIBRATED_SUNLIGHT";
@@ -87,13 +87,12 @@ FlowerPower.discover(function(flowerPower) {
       console.log('connectAndSetup');
       flowerPower.connectAndSetup(callback);
     },
-    function(callback) {
-      flowerPower.readSystemId(function(systemId) {
-    	  //uuid = systemId;
-        console.log('\tsystem id = ' + systemId);
-        callback();
-      });
-    },
+//    function(callback) {
+//      flowerPower.readSystemId(function(systemId) {
+//        console.log('\tsystem id = ' + systemId);
+//        callback();
+//      });
+//    },
     function(callback) {
 	    flowerPower.readFirmwareRevision(function(firmwareRevision) {
 	      console.log('\tfirmware revision = ' + firmwareRevision);
@@ -101,7 +100,7 @@ FlowerPower.discover(function(flowerPower) {
 	      var version = firmwareRevision.split('_')[1].split('-')[1];
 	
 	      hasCalibratedData = (version >= '1.1.0');
-	
+	      publish(FIRMWARE, firmwareRevision);
 	      callback();
 	    });
 	  },
@@ -114,8 +113,8 @@ FlowerPower.discover(function(flowerPower) {
     },
     function(callback) {
       flowerPower.readSunlight(function(sunlight) {
-        console.log('sunlight = ' + sunlight.toFixed(2) + ' mol/mÂ²/d');
-        publish(SUNLIGHT, sunlight);
+        console.log('sunlight = ' + sunlight.toFixed(2) + ' mol/m2/d');
+        publish(SUNLIGHT, sunlight.toFixed(2));
         callback();
       });
     },
@@ -128,22 +127,22 @@ FlowerPower.discover(function(flowerPower) {
     },
     function(callback) {
       flowerPower.readSoilTemperature(function(temperature) {
-        console.log('soil temperature = ' + temperature.toFixed(2) + 'Â°C');
-        publish(SOIL_TEMP, temperature);
+        console.log('soil temperature = ' + temperature.toFixed(2) + ' C');
+        publish(SOIL_TEMP, temperature.toFixed(2));
         callback();
       });
     },
     function(callback) {
       flowerPower.readAirTemperature(function(temperature) {
-        console.log('air temperature = ' + temperature.toFixed(2) + 'Â°C');
-        publish(AIR_TEMP, temperature);
+        console.log('air temperature = ' + temperature.toFixed(2) + ' C');
+        publish(AIR_TEMP, temperature.toFixed(2));
         callback();
       });
     },
     function(callback) {
       flowerPower.readSoilMoisture(function(soilMoisture) {
         console.log('soil moisture = ' + soilMoisture.toFixed(2) + '%');
-        publish(SOIL_MOISTURE, soilMoisture);
+        publish(SOIL_MOISTURE, soilMoisture.toFixed(2));
         callback();
       });
     },
@@ -153,21 +152,21 @@ FlowerPower.discover(function(flowerPower) {
           function(callback) {
             flowerPower.readCalibratedSoilMoisture(function(soilMoisture) {
               console.log('calibrated soil moisture = ' + soilMoisture.toFixed(2) + '%');
-              publish(CAL_SOI_MOISTURE, soilMoisture);
+              publish(CAL_SOI_MOISTURE, soilMoisture.toFixed(2));
               callback();
             });
           },
           function(callback) {
             flowerPower.readCalibratedAirTemperature(function(temperature) {
-              console.log('calibrated air temperature = ' + temperature.toFixed(2) + 'Â°C');
-              publish(CAL_AIR_TEMP, temperature);
+              console.log('calibrated air temperature = ' + temperature.toFixed(2) + ' C');
+              publish(CAL_AIR_TEMP, temperature.toFixed(2));
               callback();
             });
           },
           function(callback) {
             flowerPower.readCalibratedSunlight(function(sunlight) {
-              console.log('calibrated sunlight = ' + sunlight.toFixed(2) + ' mol/mÂ²/d');
-              publish(CAL_SUNLIGHT, sunlight);
+              console.log('calibrated sunlight = ' + sunlight.toFixed(2) + ' mol/m2/d');
+              publish(CAL_SUNLIGHT, sunlight.toFixed(2));
               callback();
             });
           },
@@ -182,14 +181,14 @@ FlowerPower.discover(function(flowerPower) {
     function(callback) {
       console.log('disconnect');
       flowerPower.disconnect(callback);
-    },
-    function(err, results) {
-    	if (err == null) {
-    		console.log("no error");
-    	}
-    	else {
-    		console.log("Erreur : " + err);
-    	}
     }
-  ]);
+  ],
+  function(err, results) {
+  	if (err == null) {
+  		console.log("no error");
+  	}
+  	else {
+  		console.log("Erreur : " + err);
+  	}
+  });
 });
